@@ -1,0 +1,90 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf600
+{\fonttbl\f0\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\ri-340\partightenfactor0
+
+\f0\fs22 \cf2 source activate qiime1\
+\
+\pard\tx916\tx1832\tx2748\tx3664\tx4580\tx5496\tx6412\tx7328\tx8244\tx9160\tx10076\tx10992\tx11908\tx12824\tx13740\tx14656\pardeftab720\ri-340\partightenfactor0
+\cf2 extract_barcodes.py \\\
+-f MISEQ2499_S1_L001_R1_001.fastq \\\
+-r MISEQ2499_S1_L001_R2_001.fastq \\\
+-c barcode_paired_end \\\
+-o bar_exed_sep_ends \\\
+-l 8 \\\
+-L 8 \\\
+-m MetadataFC1_CE.tsv \\\
+--attempt_read_reorientation\
+\
+Output\
+Reads1.fastq\
+Reads2.fastq\
+Barcodes.fastq\
+\
+## Rename the files Reads1: forward Reads2: reverse and comprise to format gz\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\ri-340\partightenfactor0
+\cf2 gzip barcodes.fastq\
+\pard\pardeftab720\ri-340\partightenfactor0
+\cf2 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\ri-340\partightenfactor0
+\cf2 gzip forward.fastq\
+\
+gzip reverse.fastq\
+\pard\tx916\tx1832\tx2748\tx3664\tx4580\tx5496\tx6412\tx7328\tx8244\tx9160\tx10076\tx10992\tx11908\tx12824\tx13740\tx14656\pardeftab720\ri-340\partightenfactor0
+\cf2 \
+\pard\pardeftab720\ri-340\partightenfactor0
+\cf2 conda activate qiime2-2020.8\
+\pard\tx916\tx1832\tx2748\tx3664\tx4580\tx5496\tx6412\tx7328\tx8244\tx9160\tx10076\tx10992\tx11908\tx12824\tx13740\tx14656\pardeftab720\ri-340\partightenfactor0
+\cf2 \
+mkdir emp-paired-end-sequences1\
+cd emp-paired-end-sequences1\
+\
+## Download the multiplexed reads into this recently created directory in Fz. To analyze these data, the sequences that you just downloaded must first be imported into an artifact of type\'a0EMPPairedEndSequences. QIIME 2 artifacts contain sequences that are multiplexed, meaning that the sequences have not yet been assigned to samples\
+\
+qiime tools import \\\
+   --type EMPPairedEndSequences \\\
+   --input-path emp-paired-end-sequences1 \\\
+   --output-path emp-paired-end-sequences1.qza\
+\
+## Demultiplexing sequences\
+\
+qiime demux emp-paired \\\
+  --m-barcodes-file MetadataFC1_CE.tsv\\\
+  --m-barcodes-column BarcodeSequence \\\
+  --i-seqs emp-paired-end-sequences1.qza \\\
+  --o-per-sample-sequences demux1.qza \\\
+  \
+qiime demux summarize \\\
+  --i-data demux1.qza \\\
+  --o-visualization demux1.qzv\
+\
+## DADA2 is a pipeline for detecting and correcting (where possible) Illumina amplicon sequence data.\
+\
+qiime dada2 denoise-paired \\\
+  --i-demultiplexed-seqs demux1.qza \\\
+  --p-trim-left-f 46 \\\
+  --p-trim-left-r 43 \\\
+  --p-trunc-len-f 200 \\\
+  --p-trunc-len-r 200 \\\
+  --o-table table1B.qza \\\
+  --o-representative-sequences rep-seqs1B.qza \\\
+  --o-denoising-stats denoising-stats1B.qza\
+\
+qiime feature-table summarize \\\
+  --i-table table1B.qza \\\
+  --o-visualization table1B.qzv \\\
+  --m-sample-metadata-file MetadataFC1_CE.tsv\
+\
+qiime feature-table tabulate-seqs \\\
+  --i-data rep-seqs1B.qza \\\
+  --o-visualization rep-seqs1B.qzv\
+\
+\
+\
+\
+\
+}
